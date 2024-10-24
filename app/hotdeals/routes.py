@@ -13,6 +13,7 @@ def get_hot_deals():
             "price": deal.price,
             "rating": deal.rating,
             "discount": deal.discount,
-            "image": deal.image
+            "image": deal.image,
+            "brand": deal.brand.name
         })
     return jsonify({"products": result})

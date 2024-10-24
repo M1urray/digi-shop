@@ -20,6 +20,7 @@ def create_app(config_class=Config):
         from app.hotdeals import bp as hotdeals_bp
         from app.orders import bp as orders_bp
         from app.categories import bp as categories_bp
+        from app.brands import bp as brands_bp
         
         # Import your models for migration
         from app.model import Category, Product, Customer, Order, OrderItem, Address
@@ -32,5 +33,7 @@ def create_app(config_class=Config):
         app.register_blueprint(hotdeals_bp)
         app.register_blueprint(categories_bp)
         app.register_blueprint(orders_bp)
+        app.register_blueprint(brands_bp)
+
 
     return app

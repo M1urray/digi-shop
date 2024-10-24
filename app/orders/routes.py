@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from app.orders import bp
-from app.model import Order, OrderItem, Product,Customer,Address
+from app.model import Order, OrderItem, Product, Customer, Address
 from app.extensions import db
 
 @bp.route('/orders', methods=['POST'])
@@ -33,7 +33,7 @@ def place_order():
     db.session.add(address)
     db.session.commit()
 
-    # Create order
+    # Create the order
     new_order = Order(
         customer_id=customer.id,
         address_id=address.id,
@@ -44,8 +44,12 @@ def place_order():
 
     # Add order items
     for item in data['items']:
+        product = Product.query.get(item['product_id'])
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+        
         order_item = OrderItem(
-            product_id=item['product_id'],
+            product_id=product.id,
             quantity=item['quantity'],
             order_id=new_order.id
         )
@@ -65,6 +69,7 @@ def get_order(order_id):
         product = Product.query.get(item.product_id)
         items.append({
             'product_name': product.name,
+            'brand': product.brand.name,
             'quantity': item.quantity,
             'price': product.price
         })

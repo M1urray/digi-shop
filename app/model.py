@@ -1,4 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
 from app.extensions import db
 
 class Category(db.Model):
@@ -7,7 +6,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     subcategories = db.relationship('SubCategory', backref='category', lazy=True)
-
+    products = db.relationship('Product', backref='category', lazy=True)
 
 class SubCategory(db.Model):
     __tablename__ = 'subcategories'
@@ -18,17 +17,30 @@ class SubCategory(db.Model):
     products = db.relationship('Product', backref='subcategory', lazy=True)
 
 
+class Brand(db.Model):
+    __tablename__ = 'brands'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    products = db.relationship('Product', backref='brand', lazy=True)
+
+
 class Product(db.Model):
     __tablename__ = 'products'
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     price = db.Column(db.Float, nullable=False)
-    brand = db.Column(db.String(100), nullable=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=True)
     discount = db.Column(db.String(10), nullable=True)
     image = db.Column(db.String(200), nullable=True)
     is_hot_deal = db.Column(db.Boolean, default=False)
+    
+    # Foreign key to Category
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    
+    # Foreign key to SubCategory
     subcategory_id = db.Column(db.Integer, db.ForeignKey('subcategories.id'), nullable=False)
 
 
