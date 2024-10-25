@@ -4,6 +4,7 @@ attrs==24.2.0
 blinker==1.8.2
 click==8.1.7
 colorama==0.4.6
+Faker==30.8.1
 flasgger==0.9.7.1
 Flask==3.0.3
 Flask-Migrate==4.0.7
@@ -24,6 +25,7 @@ mysql==0.0.3
 mysqlclient==2.2.5
 packaging==24.1
 PyMySQL==1.1.1
+python-dateutil==2.9.0.post0
 pytz==2024.2
 PyYAML==6.0.2
 referencing==0.35.1
