@@ -2,7 +2,7 @@ from flask import jsonify
 from app.hotdeals import bp
 from app.model import Product
 
-@bp.route('/hot-deals/', methods=['GET'])
+@bp.route('/hot-deals', methods=['GET'])
 def get_hot_deals():
     hot_deals = Product.query.filter_by(is_hot_deal=True).all()
     result = []
