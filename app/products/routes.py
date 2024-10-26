@@ -43,13 +43,43 @@ def get_products():
     return jsonify({"products": result})
 
 
-# Get products by subcategory ID
-@bp.route('/products/<int:subcategory_id>', methods=['GET'])
-def get_products_by_subcategory(subcategory_id):
-    products = Product.query.filter_by(subcategory_id=subcategory_id).all()
-    subcategory = SubCategory.query.get_or_404(subcategory_id)  # Fetch the subcategory name using ID
+# get product by product cartegory name
+@bp.route('/products/<string:category_name>', methods=['GET'])
+def get_products_by_category(category_name):
+    category = Category.query.filter_by(name=category_name).first()
+    if not category:
+        return jsonify({"message": "Category not found"}), 404
+
+    products = Product.query.filter_by(category_id=category.id).all()
     result = []
-    
+    for product in products:
+        result.append({
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'brand': product.brand.name,  # Get the brand name
+            'rating': product.rating,
+            'discount': product.discount,
+            'image': product.image,
+            'is_hot_deal': product.is_hot_deal,
+            'subcategory_name': product.subcategory.name,  # Include the subcategory name
+            'category_id': category.id,  # Include the category ID
+            'category_name': category.name  # Include the category name
+        })
+    return jsonify(result)
+# Get products by subcategory name
+@bp.route('/products/<string:category_name>/<string:subcategory_name>', methods=['GET'])
+def get_products_by_subcategory_name(category_name, subcategory_name):
+    category = Category.query.filter_by(name=category_name).first()
+    if not category:
+        return jsonify({"message": "Category not found"}), 404
+
+    subcategory = SubCategory.query.filter_by(name=subcategory_name, category_id=category.id).first()
+    if not subcategory:
+        return jsonify({"message": "Subcategory not found"}), 404
+
+    products = Product.query.filter_by(subcategory_id=subcategory.id).all()
+    result = []
     for product in products:
         result.append({
             'id': product.id,
@@ -61,10 +91,54 @@ def get_products_by_subcategory(subcategory_id):
             'image': product.image,
             'is_hot_deal': product.is_hot_deal,
             'subcategory_name': subcategory.name,  # Include the subcategory name
-            'category_id': subcategory.category_id,  # Include the category ID
-            'category_name': subcategory.category.name  # Include the category name
+            'category_id': category.id,  # Include the category ID
+            'category_name': category.name  # Include the category name
         })
     return jsonify(result)
+
+# Get products by subcategory ID
+# @bp.route('/products/<int:subcategory_id>', methods=['GET'])
+# def get_products_by_subcategory(subcategory_id):
+#     products = Product.query.filter_by(subcategory_id=subcategory_id).all()
+#     subcategory = SubCategory.query.get_or_404(subcategory_id)  # Fetch the subcategory name using ID
+#     result = []
+    
+#     for product in products:
+#         result.append({
+#             'id': product.id,
+#             'name': product.name,
+#             'price': product.price,
+#             'brand': product.brand.name,  # Get the brand name
+#             'rating': product.rating,
+#             'discount': product.discount,
+#             'image': product.image,
+#             'is_hot_deal': product.is_hot_deal,
+#             'subcategory_name': subcategory.name,  # Include the subcategory name
+#             'category_id': subcategory.category_id,  # Include the category ID
+#             'category_name': subcategory.category.name  # Include the category name
+#         })
+#     return jsonify(result)
+
+# get individual product usinf product id
+@bp.route('/products/<int:product_id>', methods=['GET'])
+def get_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    result = []
+    result.append({
+        'id': product.id,
+        'name': product.name,
+        'price': product.price,
+        'brand': product.brand.name,  # Get the brand name
+        'rating': product.rating,
+        'discount': product.discount,
+        'image': product.image,
+        'is_hot_deal': product.is_hot_deal,
+        'subcategory_name': product.subcategory.name,  # Include the subcategory name
+        'category_id': product.category_id,  # Include the category ID
+        'category_name': product.subcategory.category.name  # Include the category name
+    })
+    return jsonify(result)
+
 
 
 # Add a new product
