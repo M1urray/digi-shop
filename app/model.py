@@ -5,6 +5,7 @@ class Category(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    ico = db.Column(db.String(200), nullable=False, default="falcons")
     subcategories = db.relationship('SubCategory', backref='category', lazy=True)
     products = db.relationship('Product', backref='category', lazy=True)
 
