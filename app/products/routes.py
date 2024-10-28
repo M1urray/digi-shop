@@ -76,28 +76,6 @@ def get_products_by_subcategory(subcategory_id):
         })
     return jsonify(result)
 
-# Get products by subcategory ID
-# @bp.route('/products/<int:subcategory_id>', methods=['GET'])
-# def get_products_by_subcategory(subcategory_id):
-#     products = Product.query.filter_by(subcategory_id=subcategory_id).all()
-#     subcategory = SubCategory.query.get_or_404(subcategory_id)  # Fetch the subcategory name using ID
-#     result = []
-    
-#     for product in products:
-#         result.append({
-#             'id': product.id,
-#             'name': product.name,
-#             'price': product.price,
-#             'brand': product.brand.name,  # Get the brand name
-#             'rating': product.rating,
-#             'discount': product.discount,
-#             'image': product.image,
-#             'is_hot_deal': product.is_hot_deal,
-#             'subcategory_name': subcategory.name,  # Include the subcategory name
-#             'category_id': subcategory.category_id,  # Include the category ID
-#             'category_name': subcategory.category.name  # Include the category name
-#         })
-#     return jsonify(result)
 
 # get individual product usinf product id
 @bp.route('/products/<int:product_id>', methods=['GET'])
