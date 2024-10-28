@@ -44,3 +44,26 @@ def add_subcategory(category_id):
     db.session.commit()
     
     return jsonify({"message": "Subcategory added successfully!"}), 201
+
+
+# Delete a category by ID
+@bp.route('/categories/<int:category_id>', methods=['DELETE'])
+def delete_category(category_id):
+    # Find the category by ID
+    category = Category.query.get(category_id)
+    
+    # Check if the category exists
+    if not category:
+        return jsonify({"message": "Category not found"}), 404
+
+    # Delete all subcategories and their associated products under this category
+    for subcategory in category.subcategories:
+        for product in subcategory.products:
+            db.session.delete(product)
+        db.session.delete(subcategory)
+    
+    # Delete the category itself
+    db.session.delete(category)
+    db.session.commit()
+    
+    return jsonify({"message": "Category and associated subcategories and products deleted successfully"}), 200

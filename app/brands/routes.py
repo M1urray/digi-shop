@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import jsonify, request
 from app.extensions import db
 from app.brands import bp
 from app.model import Brand
@@ -30,3 +30,19 @@ def add_brand():
     db.session.commit()
 
     return jsonify({"id": new_brand.id, "name": new_brand.name}), 201
+
+# Delete a brand by ID
+@bp.route('/brands/<int:brand_id>', methods=['DELETE'])
+def delete_brand(brand_id):
+    # Find the brand by ID
+    brand = Brand.query.get(brand_id)
+    
+    # Check if the brand exists
+    if not brand:
+        return jsonify({"message": "Brand not found"}), 404
+    
+    # Delete the brand from the database
+    db.session.delete(brand)
+    db.session.commit()
+    
+    return jsonify({"message": "Brand deleted successfully"}), 200

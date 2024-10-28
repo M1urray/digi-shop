@@ -26,25 +26,6 @@ class Brand(db.Model):
     products = db.relationship('Product', backref='brand', lazy=True)
 
 
-class Product(db.Model):
-    __tablename__ = 'products'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=True)
-    discount = db.Column(db.String(10), nullable=True)
-    image = db.Column(db.String(200), nullable=True)
-    is_hot_deal = db.Column(db.Boolean, default=False)
-    
-    # Foreign key to Category
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
-    
-    # Foreign key to SubCategory
-    subcategory_id = db.Column(db.Integer, db.ForeignKey('subcategories.id'), nullable=False)
-
-
 class Customer(db.Model):
     __tablename__ = 'customers'
     
@@ -86,3 +67,46 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+
+# Association table for many-to-many relationship between Product and Tag
+product_tags = db.Table(
+    'product_tags',
+    db.Column('product_id', db.Integer, db.ForeignKey('products.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True)
+)
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text, nullable=True)
+    products = db.relationship('Product', secondary=product_tags, back_populates='tags', lazy=True)
+
+class Specification(db.Model):
+    __tablename__ = 'specifications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    specification_name = db.Column(db.String(100), nullable=False)
+    specification_value = db.Column(db.String(200), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+
+class Product(db.Model):
+    __tablename__ = 'products'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=True)
+    discount = db.Column(db.String(10), nullable=True)
+    image = db.Column(db.String(200), nullable=True)
+    is_hot_deal = db.Column(db.Boolean, default=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    subcategory_id = db.Column(db.Integer, db.ForeignKey('subcategories.id'), nullable=False)
+    
+    # Many-to-many relationship with Tag
+    tags = db.relationship('Tag', secondary=product_tags, back_populates='products', lazy=True)
+    
+    # One-to-many relationship with Specification
+    specifications = db.relationship('Specification', backref='product', lazy=True)

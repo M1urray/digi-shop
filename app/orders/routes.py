@@ -91,3 +91,15 @@ def get_order(order_id):
         'items': items,
         'notes': order.notes
     })
+
+
+@bp.route('/orders/<int:order_id>', methods=['DELETE'])
+def delete_order(order_id):
+    order = Order.query.get_or_404(order_id)
+
+    OrderItem.query.filter_by(order_id=order.id).delete()
+    
+    db.session.delete(order)
+    db.session.commit()
+
+    return jsonify({"message": "Order deleted successfully!"}), 200
