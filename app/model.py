@@ -35,9 +35,10 @@ class Customer(db.Model):
     company_name = db.Column(db.String(100), nullable=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     phone = db.Column(db.String(20), nullable=False)
-    addresses = db.relationship('Address', backref='customer', lazy=True)
-    orders = db.relationship('Order', backref='customer', lazy=True)
 
+    # Remove the `backref` in Order and explicitly declare orders here if necessary
+    # orders = db.relationship('Order', lazy=True)  # Uncomment if needed
+    
 
 class Address(db.Model):
     __tablename__ = 'addresses'
@@ -48,6 +49,9 @@ class Address(db.Model):
     postal_code = db.Column(db.String(20), nullable=False)
     country = db.Column(db.String(50), nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
+    
+    # Remove the `backref` in Order and explicitly declare orders here if necessary
+    # orders = db.relationship('Order', lazy=True)  # Uncomment if needed
 
 
 class Order(db.Model):
@@ -57,6 +61,10 @@ class Order(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey('addresses.id'), nullable=False)
     notes = db.Column(db.String(500), nullable=True)
+    
+    # Define relationship without backref to avoid name conflicts
+    customer = db.relationship('Customer', lazy=True)
+    address = db.relationship('Address', lazy=True)
     items = db.relationship('OrderItem', backref='order', lazy=True)
 
 
