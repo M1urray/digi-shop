@@ -2,6 +2,14 @@ from flask import jsonify, request
 from app.orders import bp
 from app.model import Order, OrderItem, Product, Customer, Address
 from app.extensions import db
+# add cors
+from flask_cors import CORS
+
+
+# add cors in post order
+
+CORS(bp)
+
 
 @bp.route('/orders', methods=['POST'])
 def place_order():
@@ -12,9 +20,9 @@ def place_order():
     customer = Customer.query.filter_by(email=customer_data['email']).first()
     if not customer:
         customer = Customer(
-            fname=customer_data['fname'],
-            lname=customer_data['lname'],
-            company_name=customer_data.get('company_name', ''),
+            fname=customer_data['firstName'],
+            lname=customer_data['lastName'],
+            company_name=customer_data.get('companyName', ''),
             email=customer_data['email'],
             phone=customer_data['phone']
         )
@@ -22,7 +30,7 @@ def place_order():
         db.session.commit()
     
     # Add shipping address
-    shipping_data = customer_data['shipping_address']
+    shipping_data = data['shipping_address']
     address = Address(
         street=shipping_data['street'],
         town=shipping_data['town'],
@@ -37,14 +45,14 @@ def place_order():
     new_order = Order(
         customer_id=customer.id,
         address_id=address.id,
-        notes=data.get('notes', None)
+        notes=data.get('orderNotes', None)
     )
     db.session.add(new_order)
     db.session.commit()
 
     # Add order items
     for item in data['items']:
-        product = Product.query.get(item['product_id'])
+        product = Product.query.get(item['id'])  # Make sure this matches your product identifier
         if not product:
             return jsonify({"error": "Product not found"}), 404
         
@@ -57,6 +65,7 @@ def place_order():
 
     db.session.commit()
     return jsonify({"message": "Order placed successfully!"}), 201
+
 
 
 @bp.route('/orders/<int:order_id>', methods=['GET'])

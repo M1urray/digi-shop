@@ -2,6 +2,8 @@ from flask import jsonify, request
 from app.products import bp
 from app.model import Brand, Category, SubCategory, Product, Tag, Specification
 from app.extensions import db
+from flask_cors import CORS
+
 
 # Get products filtered by category, subcategory, and price range
 @bp.route('/products', methods=['GET'])
@@ -159,3 +161,58 @@ def delete_product(product_id):
     db.session.commit()
 
     return jsonify({"message": "Product deleted successfully!"}), 200
+
+# Get products by subcategory name
+@bp.route('/products/<string:category_name>/<string:subcategory_name>', methods=['GET'])
+def get_products_by_subcategory_name(category_name, subcategory_name):
+    category = Category.query.filter_by(name=category_name).first()
+    if not category:
+        return jsonify({"message": "Category not found"}), 404
+
+    subcategory = SubCategory.query.filter_by(name=subcategory_name, category_id=category.id).first()
+    if not subcategory:
+        return jsonify({"message": "Subcategory not found"}), 404
+
+    products = Product.query.filter_by(subcategory_id=subcategory.id).all()
+    result = []
+    for product in products:
+        result.append({
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'brand': product.brand.name,  # Get the brand name
+            'rating': product.rating,
+            'discount': product.discount,
+            'image': product.image,
+            'is_hot_deal': product.is_hot_deal,
+            'subcategory_name': subcategory.name,  # Include the subcategory name
+            'category_id': category.id,  # Include the category ID
+            'category_name': category.name  # Include the category name
+        })
+    return jsonify(result)
+
+# get product by product cartegory name
+@bp.route('/products/<string:category_name>', methods=['GET'])
+def get_products_by_category(category_name):
+    category = Category.query.filter_by(name=category_name).first()
+    if not category:
+        return jsonify({"message": "Category not found"}), 404
+
+    products = Product.query.filter_by(category_id=category.id).all()
+    result = []
+    for product in products:
+        result.append({
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'brand': product.brand.name,  # Get the brand name
+            'rating': product.rating,
+            'discount': product.discount,
+            'image': product.image,
+            'is_hot_deal': product.is_hot_deal,
+            'subcategory_name': product.subcategory.name,  # Include the subcategory name
+            'category_id': category.id,  # Include the category ID
+            'category_name': category.name  # Include the category name
+        })
+    return jsonify(result)
+
