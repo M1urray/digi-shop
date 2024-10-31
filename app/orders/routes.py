@@ -157,6 +157,41 @@ def get_customer_orders(customer_id):
         'orders': order_list
     }), 200
 
+@bp.route('/orders', methods=['GET'])
+def get_all_orders():
+    orders = Order.query.all()
+    
+    all_orders = []
+    for order in orders:
+        items = []
+        for item in order.items:
+            product = Product.query.get(item.product_id)
+            items.append({
+                'product_name': product.name,
+                'brand': product.brand.name,
+                'quantity': item.quantity,
+                'price': product.price
+            })
+        
+        all_orders.append({
+            'order_id': order.id,
+            'customer': {
+                'fname': order.customer.fname,
+                'lname': order.customer.lname,
+                'email': order.customer.email,
+                'phone': order.customer.phone
+            },
+            'address': {
+                'street': order.address.street,
+                'town': order.address.town,
+                'postal_code': order.address.postal_code,
+                'country': order.address.country
+            },
+            'items': items,
+            'notes': order.notes
+        })
+    
+    return jsonify(all_orders), 200
 
 @bp.route('/orders/<int:order_id>', methods=['DELETE'])
 def delete_order(order_id):
