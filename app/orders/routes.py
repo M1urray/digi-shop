@@ -112,6 +112,51 @@ def get_order(order_id):
         'notes': order.notes
     })
 
+@bp.route('/customers/<int:customer_id>/orders', methods=['GET'])
+def get_customer_orders(customer_id):
+    # Find the customer by ID
+    customer = Customer.query.get_or_404(customer_id)
+
+    # Retrieve all orders associated with the customer
+    orders = Order.query.filter_by(customer_id=customer.id).all()
+
+    # Prepare the data to be returned
+    order_list = []
+    for order in orders:
+        items = []
+        for item in order.items:
+            product = Product.query.get(item.product_id)
+            items.append({
+                'product_name': product.name,
+                'brand': product.brand.name,
+                'quantity': item.quantity,
+                'price': product.price
+            })
+
+        # Add each order's details to the list
+        order_list.append({
+            'order_id': order.id,
+            'address': {
+                'street': order.address.street,
+                'town': order.address.town,
+                'postal_code': order.address.postal_code,
+                'country': order.address.country
+            },
+            'items': items,
+            'notes': order.notes
+        })
+
+    # Return JSON response with customer information and their orders
+    return jsonify({
+        'customer': {
+            'fname': customer.fname,
+            'lname': customer.lname,
+            'email': customer.email,
+            'phone': customer.phone
+        },
+        'orders': order_list
+    }), 200
+
 
 @bp.route('/orders/<int:order_id>', methods=['DELETE'])
 def delete_order(order_id):
