@@ -18,22 +18,23 @@ def get_brands():
 def add_brand():
     data = request.get_json()
 
+    if not data or "name" not in data:
+        return jsonify({"message": "Brand name is required"}), 400
+
+    brand_name = data["name"]
+
     # Check if the brand already exists
     existing_brand = Brand.query.filter_by(name=brand_name).first()
     if existing_brand:
         return jsonify({"message": "Brand already exists"}), 400
 
-
-    if not data or not "name" in data:
-        return jsonify({"message": "Brand name is required"}), 400
-
-    brand_name = data["name"]
-
-
-
     new_brand = Brand(name=brand_name)
-    db.session.add(new_brand)
-    db.session.commit()
+    try:
+        db.session.add(new_brand)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()  # Rollback the session if any error occurs
+        return jsonify({"message": "Failed to add brand due to an error."}), 500
 
     return jsonify({"id": new_brand.id, "name": new_brand.name}), 201
 
