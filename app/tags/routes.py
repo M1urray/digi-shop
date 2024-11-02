@@ -39,3 +39,10 @@ def delete_tag(product_id, tag_id):
     db.session.commit()
 
     return jsonify({"message": f"Tag '{tag.name}' removed from product '{product.name}'."}), 200
+
+
+# all tags
+@bp.route('/tags', methods=['GET'])
+def get_tags():
+    tags = Tag.query.all()
+    return jsonify([tag.to_dict() for tag in tags]), 200

@@ -216,3 +216,29 @@ def get_products_by_category(category_name):
         })
     return jsonify(result)
 
+# get products/all with tags and specifications
+@bp.route('/products/all', methods=['GET'])
+def get_all_products():
+    products = Product.query.all()
+    result = []
+    for product in products:
+        result.append({
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'brand': product.brand.name,  # Get the brand name
+            'rating': product.rating,
+            'discount': product.discount,
+            'image': product.image,
+            'is_hot_deal': product.is_hot_deal,
+            'subcategory_name': product.subcategory.name,  # Include the subcategory name
+            'category_id': product.category_id,  # Include the category ID
+            'category_name': product.subcategory.category.name,  # Include the category name
+            'tags': [{"id": tag.id, "name": tag.name,  "description": tag.description } for tag in product.tags],  # List of tags
+            'specifications': [
+                {"name": spec.specification_name, "value": spec.specification_value}
+                for spec in product.specifications
+            ]  # List of specifications
+        })
+    return jsonify(result)
+
