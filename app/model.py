@@ -91,6 +91,15 @@ class Tag(db.Model):
     description = db.Column(db.Text, nullable=True)
     products = db.relationship('Product', secondary=product_tags, back_populates='tags', lazy=True)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description
+        }
+
+
+
 class Specification(db.Model):
     __tablename__ = 'specifications'
     

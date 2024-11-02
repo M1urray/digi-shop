@@ -3,6 +3,12 @@ from app.tags import bp
 from app.model import Product, Tag
 from app.extensions import db
 
+# all tags
+@bp.route('/tags', methods=['GET'])
+def get_tags():
+    tags = Tag.query.all()
+    return jsonify([tag.to_dict() for tag in tags]), 200
+
 
 # Routes for managing tags
 @bp.route('/product/<int:product_id>/tags', methods=['POST'])
@@ -41,8 +47,4 @@ def delete_tag(product_id, tag_id):
     return jsonify({"message": f"Tag '{tag.name}' removed from product '{product.name}'."}), 200
 
 
-# all tags
-@bp.route('/tags', methods=['GET'])
-def get_tags():
-    tags = Tag.query.all()
-    return jsonify([tag.to_dict() for tag in tags]), 200
+
