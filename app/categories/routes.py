@@ -2,6 +2,9 @@ from flask import jsonify, request
 from app.categories import bp
 from app.model import Category, SubCategory
 from app.extensions import db
+from flask_cors import CORS
+CORS(bp)
+
 
 @bp.route('/categories', methods=['GET'])
 def get_categories():
@@ -21,6 +24,10 @@ def add_category():
     data = request.get_json()
     
     ico = data.get('ico', 'falcons')
+    # check if the category already exists
+    existing_category = Category.query.filter_by(name=data['name']).first()
+    if existing_category:
+        return jsonify({"message": "Category already exists"}), 400
     
     new_category = Category(name=data['name'], ico=ico)
     db.session.add(new_category)

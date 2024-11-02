@@ -2,6 +2,9 @@ from flask import jsonify, request
 from app.extensions import db
 from app.brands import bp
 from app.model import Brand
+from flask_cors import CORS
+CORS(bp)
+
 
 # Retrieve all brands
 @bp.route('/brands', methods=['GET'])
@@ -15,15 +18,18 @@ def get_brands():
 def add_brand():
     data = request.get_json()
 
+    # Check if the brand already exists
+    existing_brand = Brand.query.filter_by(name=brand_name).first()
+    if existing_brand:
+        return jsonify({"message": "Brand already exists"}), 400
+
+
     if not data or not "name" in data:
         return jsonify({"message": "Brand name is required"}), 400
 
     brand_name = data["name"]
 
-    # Check if the brand already exists
-    existing_brand = Brand.query.filter_by(name=brand_name).first()
-    if existing_brand:
-        return jsonify({"message": "Brand already exists"}), 400
+
 
     new_brand = Brand(name=brand_name)
     db.session.add(new_brand)
