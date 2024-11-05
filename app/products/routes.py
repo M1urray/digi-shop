@@ -50,53 +50,30 @@ def get_products():
     return jsonify({"products": result})
 
 
-# Get products by subcategory ID
-@bp.route('/products/<int:subcategory_id>', methods=['GET'])
-def get_products_by_subcategory(subcategory_id):
-    products = Product.query.filter_by(subcategory_id=subcategory_id).all()
-    subcategory = SubCategory.query.get_or_404(subcategory_id)
-    result = []
-    
-    for product in products:
-        result.append({
-            'id': product.id,
-            'name': product.name,
-            'price': product.price,
-            'brand': product.brand.name,
-            'rating': product.rating,
-            'discount': product.discount,
-            'image': product.image,
-            'is_hot_deal': product.is_hot_deal,
-            'subcategory_name': subcategory.name,
-            'category_id': subcategory.category_id,
-            'category_name': subcategory.category.name,
-            'tags': [{"id": tag.id, "name": tag.name} for tag in product.tags],
-            'specifications': [
-                {"name": spec.specification_name, "value": spec.specification_value}
-                for spec in product.specifications
-            ]
-        })
-    return jsonify(result)
-
-
-# get individual product usinf product id
+# Get product by product ID
 @bp.route('/products/<int:product_id>', methods=['GET'])
-def get_product(product_id):
+def get_product_by_id(product_id):
     product = Product.query.get_or_404(product_id)
-    result = []
-    result.append({
+    subcategory = product.subcategory  # Assuming the Product model has a subcategory relationship
+
+    result = {
         'id': product.id,
         'name': product.name,
         'price': product.price,
-        'brand': product.brand.name,  # Get the brand name
+        'brand': product.brand.name,
         'rating': product.rating,
         'discount': product.discount,
         'image': product.image,
         'is_hot_deal': product.is_hot_deal,
-        'subcategory_name': product.subcategory.name,  # Include the subcategory name
-        'category_id': product.category_id,  # Include the category ID
-        'category_name': product.subcategory.category.name  # Include the category name
-    })
+        'subcategory_name': subcategory.name,
+        'category_id': subcategory.category_id,
+        'category_name': subcategory.category.name,
+        'tags': [{"id": tag.id, "name": tag.name, "description": tag.description} for tag in product.tags],
+        'specifications': [
+            {"name": spec.specification_name, "value": spec.specification_value}
+            for spec in product.specifications
+        ]
+    }
     return jsonify(result)
 
 
