@@ -11,6 +11,9 @@ fake = Faker()
 app = create_app()
 app.app_context().push()
 
+# Full path to the image file
+full_image_path = r"C:\Users\rnjonjo\source\repos\storeapp\app\static\uploads\product_images\154_thumbnail2.png"
+
 # Function to generate test data
 def generate_test_data():
     try:
@@ -50,13 +53,14 @@ def generate_test_data():
         products = []
         for subcategory in subcategories:
             for _ in range(10):  # 10 products per subcategory
+                # Use the full image path for all products
                 product = Product(
                     name=fake.word().capitalize(),
                     price=round(random.uniform(10, 500), 2),
                     brand_id=random.choice(brands).id,
                     rating=random.randint(1, 5),
                     discount=f"{random.randint(5, 30)}%",
-                    image=fake.image_url(),
+                    image=full_image_path,  # Use the full file path for the image
                     is_hot_deal=random.choice([True, False]),
                     category_id=subcategory.category_id,
                     subcategory_id=subcategory.id

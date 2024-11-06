@@ -1,8 +1,12 @@
+import base64
+from io import BytesIO
+import os
 from flask import jsonify, request
 from app.products import bp
 from app.model import Brand, Category, SubCategory, Product, Tag, Specification
 from app.extensions import db
-from flask_cors import CORS
+from flask import current_app
+from PIL import Image
 
 
 # Get products filtered by category, subcategory, and price range
@@ -37,6 +41,7 @@ def get_products():
             "rating": product.rating,
             "discount": product.discount,
             "image": product.image,
+            'stock': product.stock,
             "subcategory_id": product.subcategory_id,
             "subcategory_name": product.subcategory.name,  # Get the subcategory name
             "category_id": product.category_id,  # Include category ID
@@ -64,6 +69,7 @@ def get_product_by_id(product_id):
         'rating': product.rating,
         'discount': product.discount,
         'image': product.image,
+        'stock': product.stock,
         'is_hot_deal': product.is_hot_deal,
         'subcategory_name': subcategory.name,
         'category_id': subcategory.category_id,
@@ -78,55 +84,90 @@ def get_product_by_id(product_id):
 
 
 
-# Add a new product
+# Utility function to save base64 image
+def save_base64_image(base64_string, image_name):
+    try:
+        # Decode the base64 string and save the image
+        image_data = base64.b64decode(base64_string.split(',')[1])  # Strip the data:image/png;base64, part
+        image = Image.open(BytesIO(image_data))
+        
+        # Ensure the 'uploads' directory exists
+        uploads_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'product_images')
+        if not os.path.exists(uploads_dir):
+            os.makedirs(uploads_dir)
+        
+        # Save the image with the given name
+        image_path = os.path.join(uploads_dir, f"{image_name}.png")
+        image.save(image_path)
+        return image_path
+    except Exception as e:
+        raise ValueError(f"Error saving image: {str(e)}")
+
+# Route for placing the order and handling product data
 @bp.route('/products', methods=['POST'])
 def add_product():
     data = request.get_json()
-
-    # Ensure required fields are provided
-    name = data.get('name')
-    price = data.get('price')
-    brand_id = data.get('brand_id')
-    subcategory_id = data.get('subcategory_id')
-
-    if not all([name, price, brand_id, subcategory_id]):
-        return jsonify({"message": "Name, price, brand_id, and subcategory_id are required."}), 400
-
-    # Check if the subcategory and brand exist
-    subcategory = SubCategory.query.get_or_404(subcategory_id)
-    brand = Brand.query.get_or_404(brand_id)
-
-    new_product = Product(
-        name=name,
-        price=price,
-        brand_id=brand.id,
-        rating=data.get('rating', None),
-        discount=data.get('discount', None),
-        image=data.get('image', None),
-        is_hot_deal=data.get('is_hot_deal', False),
-        subcategory_id=subcategory.id,
-        category_id=subcategory.category_id
-    )
     
-    # Handle tags if provided
-    tag_ids = data.get('tag_ids', [])
-    tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
-    new_product.tags.extend(tags)
-
-    # Handle specifications if provided
-    specifications = data.get('specifications', [])
-    for spec in specifications:
-        specification = Specification(
-            specification_name=spec['name'],
-            specification_value=spec['value'],
-            product=new_product
+    try:
+        # Fetch the category, subcategory, and brand
+        category = Category.query.get(data['category'])
+        subcategory = SubCategory.query.get(data['subcategory'])
+        brand = Brand.query.get(data['brand'])
+        
+        if not category or not subcategory or not brand:
+            return jsonify({"error": "Invalid category, subcategory, or brand ID."}), 400
+        
+        # Create the product
+        new_product = Product(
+            name=data['productName'],
+            price=float(data['price']),
+            discount=data['discountPrice'],
+            stock=int(data['stock']),
+            category_id=category.id,
+            subcategory_id=subcategory.id,
+            brand_id=brand.id
         )
-        db.session.add(specification)
-    
-    db.session.add(new_product)
-    db.session.commit()
-    
-    return jsonify({"message": "Product added successfully!"}), 201
+        db.session.add(new_product)
+        db.session.commit()  # Save the product first to get its ID
+        
+        # Handle product images
+        for img in data['images']:
+            image_key = img['key']
+            image_url = img['url']
+            
+            # Save the image and associate with the product
+            image_path = save_base64_image(image_url, f"{new_product.id}_{image_key}")
+            new_product.image = image_path  # Assign main image path to the product (or you can associate multiple images)
+
+        # Handle specifications
+        for spec in data['specifications']:
+            specification = Specification(
+                specification_name=spec['name'],
+                specification_value=spec['value'],
+                product_id=new_product.id
+            )
+            db.session.add(specification)
+
+        # Handle tags
+        for tag_data in data['tags']:
+            tag = Tag.query.filter_by(name=tag_data['tagNames']).first()
+            if not tag:
+                # If tag doesn't exist, create a new one
+                tag = Tag(name=tag_data['tagNames'], description=tag_data['description'])
+                db.session.add(tag)
+            
+            # Add tag to the product
+            new_product.tags.append(tag)
+
+        db.session.commit()  # Commit all changes
+
+        return jsonify({"message": "Product added successfully!"}), 201
+
+    except KeyError as e:
+        return jsonify({"error": f"Missing key: {e}"}), 400
+    except Exception as e:
+        db.session.rollback()  # Rollback any changes in case of error
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
 # Delete a product by ID
@@ -160,6 +201,7 @@ def get_products_by_subcategory_name(category_name, subcategory_name):
             'brand': product.brand.name,  # Get the brand name
             'rating': product.rating,
             'discount': product.discount,
+            'stock': product.stock,
             'image': product.image,
             'is_hot_deal': product.is_hot_deal,
             'subcategory_name': subcategory.name,  # Include the subcategory name
@@ -185,6 +227,7 @@ def get_products_by_category(category_name):
             'brand': product.brand.name,  # Get the brand name
             'rating': product.rating,
             'discount': product.discount,
+            'stock': product.stock,
             'image': product.image,
             'is_hot_deal': product.is_hot_deal,
             'subcategory_name': product.subcategory.name,  # Include the subcategory name
@@ -206,6 +249,7 @@ def get_all_products():
             'brand': product.brand.name,  # Get the brand name
             'rating': product.rating,
             'discount': product.discount,
+            'stock': product.stock,
             'image': product.image,
             'is_hot_deal': product.is_hot_deal,
             'subcategory_name': product.subcategory.name,  # Include the subcategory name

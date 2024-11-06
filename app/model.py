@@ -116,6 +116,7 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=True)
+    stock = db.Column(db.Integer, nullable=True)
     discount = db.Column(db.String(10), nullable=True)
     image = db.Column(db.String(200), nullable=True)
     is_hot_deal = db.Column(db.Boolean, default=False)

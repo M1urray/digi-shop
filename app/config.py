@@ -8,5 +8,7 @@ class Config:
     # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:''@localhost/storeapplication'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True
+    UPLOAD_FOLDER = os.path.join(basedir, 'static', 'uploads')
+
 
 
