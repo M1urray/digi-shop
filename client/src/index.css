@@ -1,0 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.Toastify__toast {
+  z-index: 999999;
+}
+
+.rdt_TableBody {
+  padding: 0 1.5rem !important;
+}
