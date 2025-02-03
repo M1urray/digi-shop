@@ -206,36 +206,36 @@ def delete_order(order_id):
 
     return jsonify({"message": "Order deleted successfully!"}), 200
 
-@bp.route('/orders/<int:order_id>/fulfill', methods=['PUT'])
-def fulfill_order(order_id):
-    order = Order.query.get(order_id)
-    if not order:
-        return jsonify({'error': 'Order not found'}), 404
+# @bp.route('/orders/<int:order_id>/fulfill', methods=['PUT'])
+# def fulfill_order(order_id):
+#     order = Order.query.get(order_id)
+#     if not order:
+#         return jsonify({'error': 'Order not found'}), 404
     
-    # Check if the order is already fulfilled
-    if order.is_fulfilled:
-        return jsonify({'message': 'Order already fulfilled'}), 400
+#     # Check if the order is already fulfilled
+#     if order.is_fulfilled:
+#         return jsonify({'message': 'Order already fulfilled'}), 400
 
-    # Ensure stock is sufficient for each item
-    for item in order.items:
-        product = Product.query.get(item.product_id)
-        if product.stock < item.quantity:
-            return jsonify({
-                'error': f'Insufficient stock for product {product.name} (id: {product.id})'
-            }), 400
+#     # Ensure stock is sufficient for each item
+#     for item in order.items:
+#         product = Product.query.get(item.product_id)
+#         if product.stock < item.quantity:
+#             return jsonify({
+#                 'error': f'Insufficient stock for product {product.name} (id: {product.id})'
+#             }), 400
     
-    # Deduct stock and mark order as fulfilled
-    for item in order.items:
-        product = Product.query.get(item.product_id)
-        product.stock -= item.quantity
-        db.session.add(product)
+#     # Deduct stock and mark order as fulfilled
+#     for item in order.items:
+#         product = Product.query.get(item.product_id)
+#         product.stock -= item.quantity
+#         db.session.add(product)
 
-    # Mark the order as fulfilled
-    order.is_fulfilled = True
-    db.session.add(order)
-    db.session.commit()
+#     # Mark the order as fulfilled
+#     order.is_fulfilled = True
+#     db.session.add(order)
+#     db.session.commit()
 
-    return jsonify({'message': 'Order fulfilled and stock updated'}), 200
+#     return jsonify({'message': 'Order fulfilled and stock updated'}), 200
 
 @bp.route('/customers/count', methods=['GET'])
 def get_customer_count():
